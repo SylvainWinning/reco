@@ -1,9 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Allowed origins for CORS - restrict to known domains
+const allowedOrigins = [
+  'https://lovable.dev',
+  'https://www.lovable.dev',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const isAllowed = origin && allowedOrigins.some(allowed => 
+    origin === allowed || origin.endsWith('.lovable.dev') || origin.endsWith('.lovableproject.com')
+  );
+  
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+}
 
 interface MediaItem {
   title: string;
@@ -29,6 +43,9 @@ interface RequestBody {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -47,7 +64,7 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'Configuration API manquante' }),
+        JSON.stringify({ error: 'Service temporairement indisponible' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -133,24 +150,26 @@ Réponds en JSON avec ce format EXACT:
     });
 
     if (!response.ok) {
+      // Log details server-side only for debugging
       const errorText = await response.text();
       console.error('AI Gateway error:', response.status, errorText);
       
+      // Return generic error messages to client
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: '429 - Limite de requêtes atteinte. Réessayez dans quelques instants.' }),
+          JSON.stringify({ error: 'Limite de requêtes atteinte. Réessayez dans quelques instants.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: '402 - Crédits insuffisants.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Service temporairement indisponible.' }),
+          { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
       return new Response(
-        JSON.stringify({ error: `Erreur API: ${response.status}` }),
+        JSON.stringify({ error: 'Une erreur est survenue. Veuillez réessayer.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -159,9 +178,9 @@ Réponds en JSON avec ce format EXACT:
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
-      console.error('No content in response:', data);
+      console.error('No content in AI response');
       return new Response(
-        JSON.stringify({ error: 'Réponse vide de l\'IA' }),
+        JSON.stringify({ error: 'Aucune recommandation générée. Veuillez réessayer.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -183,16 +202,18 @@ Réponds en JSON avec ce format EXACT:
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (parseError) {
-      console.error('JSON parse error:', parseError, 'Content:', jsonContent);
+      // Log details server-side only
+      console.error('JSON parse error:', parseError);
       return new Response(
-        JSON.stringify({ error: 'Erreur de parsing des recommandations' }),
+        JSON.stringify({ error: 'Erreur lors du traitement des recommandations.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
   } catch (error) {
+    // Log details server-side only
     console.error('Error in get-recommendations:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Erreur inconnue' }),
+      JSON.stringify({ error: 'Une erreur est survenue. Veuillez réessayer.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
