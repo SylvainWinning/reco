@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase, supabaseConfigError } from '@/integrations/supabase/client';
 import { UserPreferences, MediaItem, MediaType, ListStatus, GamingPlatform } from './types';
 
@@ -58,7 +58,24 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [supabaseError, setSupabaseError] = useState<string | null>(supabaseConfigError);
 
-  const initProfile = async () => {
+  const loadMediaItems = useCallback(async (pid: string) => {
+    if (!supabase) {
+      console.error('Impossible de charger les médias : Supabase n\'est pas configuré.');
+      return;
+    }
+
+    const { data } = await supabase
+      .from('media_lists')
+      .select('*')
+      .eq('profile_id', pid)
+      .order('created_at', { ascending: false });
+
+    if (data) {
+      setMediaItems(data as MediaItem[]);
+    }
+  }, []);
+
+  const initProfile = useCallback(async () => {
     setIsLoading(true);
 
     if (!supabase) {
@@ -101,26 +118,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       setProfileId(newProfile.id);
       setPreferences(defaultPreferences);
     }
-    
+
     setIsLoading(false);
-  };
-
-  const loadMediaItems = async (pid: string) => {
-    if (!supabase) {
-      console.error('Impossible de charger les médias : Supabase n\'est pas configuré.');
-      return;
-    }
-
-    const { data } = await supabase
-      .from('media_lists')
-      .select('*')
-      .eq('profile_id', pid)
-      .order('created_at', { ascending: false });
-    
-    if (data) {
-      setMediaItems(data as MediaItem[]);
-    }
-  };
+  }, [loadMediaItems]);
 
   const refreshData = async () => {
     if (!supabase) {
@@ -209,7 +209,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     initProfile();
-  }, []);
+  }, [initProfile]);
 
   if (supabaseError) {
     return (
