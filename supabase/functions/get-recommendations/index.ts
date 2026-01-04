@@ -5,6 +5,13 @@ import {
   type RatingResult,
 } from "./ratings.ts";
 
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+const missingApiKeyMessage = "Configuration requise absente : la clé d'API Lovable n'est pas configurée. Contactez un administrateur.";
+
+if (!LOVABLE_API_KEY) {
+  console.error('LOVABLE_API_KEY not configured in environment');
+}
+
 // Allowed origins for CORS - restrict to known domains
 const allowedOrigins = [
   'https://lovable.dev',
@@ -75,12 +82,10 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'Service temporairement indisponible' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: missingApiKeyMessage, code: 'missing_lovable_api_key' }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
