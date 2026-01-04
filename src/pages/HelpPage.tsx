@@ -1,7 +1,7 @@
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { HelpCircle, Sparkles, Search, AlertTriangle, Link2, Database } from 'lucide-react';
+import { HelpCircle, Sparkles, Search, AlertTriangle, Link2, Database, Info } from 'lucide-react';
 
 export default function HelpPage() {
   return (
@@ -36,6 +36,40 @@ export default function HelpPage() {
               <li><strong className="text-foreground">Demandez une analyse</strong> : entrez le titre d'une œuvre que vous aimez.</li>
               <li><strong className="text-foreground">Recevez 5 recommandations</strong> personnalisées avec notes et justifications.</li>
             </ol>
+          </CardContent>
+        </Card>
+
+        {/* Prefill guide */}
+        <Card className="vault-card border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Info className="w-5 h-5 text-primary" />
+              Données pré-remplies
+            </CardTitle>
+            <CardDescription>Ce qui est ajouté automatiquement dans un nouveau profil</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              Lors de la création d'un profil anonyme, RecoVault pré-remplit vos préférences (goûts généraux,
+              réalisateurs, acteurs, genres musicaux, préférences jeux/livres) ainsi que des listes de films,
+              séries, jeux, livres et musiques déjà aimés, mitigés, pas aimés ou à découvrir.
+            </p>
+            <p>
+              Vous pouvez personnaliser ces données à tout moment :
+            </p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>
+                Mettez à jour vos préférences dans l'onglet <strong>Mon profil</strong> (textes et listes de noms).
+              </li>
+              <li>
+                Gérez les œuvres préchargées depuis la section <strong>Mes listes</strong> (ajout, modification, suppression).
+              </li>
+            </ul>
+            <p>
+              Si un profil existe déjà dans votre navigateur, aucun préchargement supplémentaire n'est effectué. Les
+              administrateurs peuvent aussi désactiver le remplissage automatique en définissant la variable
+              d'environnement <code>VITE_PREFILL_ANONYMOUS_PROFILE=false</code> avant le démarrage.
+            </p>
           </CardContent>
         </Card>
 

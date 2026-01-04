@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase, supabaseConfigError } from '@/integrations/supabase/client';
-import { UserPreferences, MediaItem, MediaType, ListStatus, GamingPlatform } from './types';
+import { UserPreferences, MediaItem, MediaType, ListStatus } from './types';
+import { defaultPreferences, seededMediaItems } from './default-data';
 
 interface ProfileContextType {
   profileId: string | null;
@@ -15,15 +16,6 @@ interface ProfileContextType {
   isInAnyList: (title: string, mediaType: MediaType) => boolean;
   refreshData: () => Promise<void>;
 }
-
-const defaultPreferences: UserPreferences = {
-  general: '',
-  directors: [],
-  actors: [],
-  music_genres: [],
-  game_preferences: '',
-  book_preferences: '',
-};
 
 const disabledContextValue: ProfileContextType = {
   profileId: null,
@@ -75,6 +67,32 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const prefillMediaLists = useCallback(async (pid: string, hasExistingProfile: boolean) => {
+    const shouldPrefill = (import.meta.env.VITE_PREFILL_ANONYMOUS_PROFILE ?? 'true') !== 'false';
+
+    if (!supabase || !shouldPrefill || hasExistingProfile) return;
+
+    const { error: rpcError } = await supabase.rpc('seed_anonymous_profile', {
+      profile_id: pid,
+      skip_seed: false,
+    });
+
+    if (rpcError) {
+      console.warn('RPC seed_anonymous_profile indisponible, fallback client.', rpcError.message);
+
+      const { error: insertError } = await supabase
+        .from('media_lists')
+        .insert(seededMediaItems.map(item => ({ ...item, profile_id: pid })));
+
+      if (insertError) {
+        console.error('Impossible de préremplir les listes par défaut', insertError.message);
+        return;
+      }
+    }
+
+    await loadMediaItems(pid);
+  }, [loadMediaItems]);
+
   const initProfile = useCallback(async () => {
     setIsLoading(true);
 
@@ -86,6 +104,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
     // Check localStorage for existing profile
     const storedProfileId = localStorage.getItem('recovault_profile_id');
+    const hasExistingProfile = Boolean(storedProfileId);
 
     if (storedProfileId) {
       // Verify profile exists
@@ -112,15 +131,16 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       .insert([{ preferences: prefsJson }])
       .select()
       .single();
-    
+
     if (newProfile && !error) {
       localStorage.setItem('recovault_profile_id', newProfile.id);
       setProfileId(newProfile.id);
       setPreferences(defaultPreferences);
+      await prefillMediaLists(newProfile.id, hasExistingProfile);
     }
 
     setIsLoading(false);
-  }, [loadMediaItems]);
+  }, [loadMediaItems, prefillMediaLists]);
 
   const refreshData = async () => {
     if (!supabase) {
