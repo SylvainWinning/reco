@@ -8,6 +8,7 @@ interface ProfileContextType {
   preferences: UserPreferences;
   mediaItems: MediaItem[];
   isLoading: boolean;
+  supabaseError: string | null;
   updatePreferences: (prefs: Partial<UserPreferences>) => Promise<void>;
   addMediaItem: (item: Omit<MediaItem, 'id' | 'profile_id' | 'created_at'>) => Promise<void>;
   removeMediaItem: (id: string) => Promise<void>;
@@ -17,11 +18,12 @@ interface ProfileContextType {
   refreshData: () => Promise<void>;
 }
 
-const disabledContextValue: ProfileContextType = {
+export const disabledContextValue: ProfileContextType = {
   profileId: null,
   preferences: defaultPreferences,
   mediaItems: [],
   isLoading: false,
+  supabaseError: supabaseConfigError ?? 'Supabase n\'est pas configuré.',
   updatePreferences: async () => {
     console.error('Mise à jour des préférences impossible : Supabase n\'est pas configuré.');
   },
@@ -231,33 +233,28 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     initProfile();
   }, [initProfile]);
 
-  if (supabaseError) {
-    return (
-      <ProfileContext.Provider value={disabledContextValue}>
-        <div className="p-6 space-y-4 text-center text-sm text-muted-foreground">
-          <p className="text-base font-semibold text-destructive">Connexion à Supabase impossible</p>
-          <p>{supabaseError}</p>
-          <p>Ajoutez ces variables dans votre fichier d'environnement puis redémarrez l'application.</p>
-        </div>
-      </ProfileContext.Provider>
-    );
-  }
-
   return (
     <ProfileContext.Provider
-      value={{
-        profileId,
-        preferences,
-        mediaItems,
-        isLoading,
-        updatePreferences,
-        addMediaItem,
-        removeMediaItem,
-        updateMediaItem,
-        getItemsByTypeAndStatus,
-        isInAnyList,
-        refreshData,
-      }}
+      value={supabaseError ?
+        {
+          ...disabledContextValue,
+          supabaseError,
+        } :
+        {
+          profileId,
+          preferences,
+          mediaItems,
+          isLoading,
+          supabaseError: null,
+          updatePreferences,
+          addMediaItem,
+          removeMediaItem,
+          updateMediaItem,
+          getItemsByTypeAndStatus,
+          isInAnyList,
+          refreshData,
+        }
+      }
     >
       {children}
     </ProfileContext.Provider>
