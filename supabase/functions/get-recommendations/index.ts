@@ -1,4 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import {
+  fetchRatingsForWork,
+  sortByMetacriticScore,
+  type RatingResult,
+} from "./ratings.ts";
 
 // Allowed origins for CORS - restrict to known domains
 const allowedOrigins = [
@@ -40,6 +45,16 @@ interface RequestBody {
   platform?: string;
   preferences: UserPreferences;
   existingItems: MediaItem[];
+}
+
+interface RecommendationItem {
+  rank: number;
+  title: string;
+  media_type: string;
+  platform?: string | null;
+  reason: string;
+  metacritic?: RatingResult;
+  senscritique?: RatingResult;
 }
 
 serve(async (req) => {
@@ -196,9 +211,53 @@ Réponds en JSON avec ce format EXACT:
     try {
       const result = JSON.parse(jsonContent.trim());
       console.log('Recommendations generated successfully');
-      
+
+      const recommendations: RecommendationItem[] = Array.isArray(result.recommendations)
+        ? result.recommendations.slice(0, 5)
+        : [];
+
+      const queryRatings = await fetchRatingsForWork({
+        title,
+        mediaType,
+        platform: platform ?? null,
+      });
+
+      const enrichedRecommendations = await Promise.all(
+        recommendations.map(async (rec, index) => {
+          const ratings = await fetchRatingsForWork({
+            title: rec.title,
+            mediaType: rec.media_type,
+            platform: rec.platform ?? null,
+          });
+
+          return {
+            ...rec,
+            rank: index + 1,
+            platform: rec.platform ?? null,
+            metacritic: ratings.metacritic,
+            senscritique: ratings.senscritique,
+          };
+        }),
+      );
+
+      const sortedRecommendations = sortByMetacriticScore(enrichedRecommendations)
+        .map((rec, index) => ({ ...rec, rank: index + 1 }));
+
+      const responsePayload = {
+        ...result,
+        query: {
+          ...(result.query || {}),
+          title,
+          media_type: mediaType,
+          platform: platform ?? null,
+          metacritic: queryRatings.metacritic,
+          senscritique: queryRatings.senscritique,
+        },
+        recommendations: sortedRecommendations,
+      };
+
       return new Response(
-        JSON.stringify(result),
+        JSON.stringify(responsePayload),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (parseError) {
