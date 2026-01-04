@@ -15,9 +15,9 @@ const defaultAllowedOrigins = [
   'http://localhost:3000',
 ];
 
-const envAllowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',')
+const envAllowedOrigins = (Deno.env.get('ALLOWED_ORIGINS')?.split(',') ?? [])
   .map(origin => origin.trim())
-  .filter(Boolean) ?? [];
+  .filter(Boolean);
 
 const allowedOrigins = [...defaultAllowedOrigins, ...envAllowedOrigins];
 const normalizedAllowedOrigins = allowedOrigins.map(origin => origin.toLowerCase());
