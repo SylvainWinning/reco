@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, supabaseConfigError } from '@/integrations/supabase/client';
 import { UserPreferences, MediaItem, MediaType, ListStatus, GamingPlatform } from './types';
 
 interface ProfileContextType {
@@ -25,6 +25,30 @@ const defaultPreferences: UserPreferences = {
   book_preferences: '',
 };
 
+const disabledContextValue: ProfileContextType = {
+  profileId: null,
+  preferences: defaultPreferences,
+  mediaItems: [],
+  isLoading: false,
+  updatePreferences: async () => {
+    console.error('Mise à jour des préférences impossible : Supabase n\'est pas configuré.');
+  },
+  addMediaItem: async () => {
+    console.error('Ajout impossible : Supabase n\'est pas configuré.');
+  },
+  removeMediaItem: async () => {
+    console.error('Suppression impossible : Supabase n\'est pas configuré.');
+  },
+  updateMediaItem: async () => {
+    console.error('Mise à jour impossible : Supabase n\'est pas configuré.');
+  },
+  getItemsByTypeAndStatus: () => [],
+  isInAnyList: () => false,
+  refreshData: async () => {
+    console.error('Rafraîchissement impossible : Supabase n\'est pas configuré.');
+  },
+};
+
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
@@ -32,13 +56,20 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [supabaseError, setSupabaseError] = useState<string | null>(supabaseConfigError);
 
   const initProfile = async () => {
     setIsLoading(true);
-    
+
+    if (!supabase) {
+      setSupabaseError(supabaseConfigError ?? 'Supabase n\'est pas configuré. Vérifiez vos variables VITE_SUPABASE_URL et VITE_SUPABASE_PUBLISHABLE_KEY.');
+      setIsLoading(false);
+      return;
+    }
+
     // Check localStorage for existing profile
-    let storedProfileId = localStorage.getItem('recovault_profile_id');
-    
+    const storedProfileId = localStorage.getItem('recovault_profile_id');
+
     if (storedProfileId) {
       // Verify profile exists
       const { data: profile } = await supabase
@@ -56,7 +87,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         return;
       }
     }
-    
+
     // Create new anonymous profile
     const prefsJson = JSON.parse(JSON.stringify(defaultPreferences));
     const { data: newProfile, error } = await supabase
@@ -75,6 +106,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   };
 
   const loadMediaItems = async (pid: string) => {
+    if (!supabase) {
+      console.error('Impossible de charger les médias : Supabase n\'est pas configuré.');
+      return;
+    }
+
     const { data } = await supabase
       .from('media_lists')
       .select('*')
@@ -87,6 +123,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshData = async () => {
+    if (!supabase) {
+      console.error('Impossible de rafraîchir les données : Supabase n\'est pas configuré.');
+      return;
+    }
+
     if (profileId) {
       await loadMediaItems(profileId);
     }
@@ -94,9 +135,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   const updatePreferences = async (prefs: Partial<UserPreferences>) => {
     if (!profileId) return;
-    
+    if (!supabase) {
+      console.error('Impossible de mettre à jour les préférences : Supabase n\'est pas configuré.');
+      return;
+    }
+
     const newPrefs = { ...preferences, ...prefs };
-    
+
     await supabase
       .from('profiles')
       .update({ preferences: newPrefs })
@@ -107,7 +152,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   const addMediaItem = async (item: Omit<MediaItem, 'id' | 'profile_id' | 'created_at'>) => {
     if (!profileId) return;
-    
+    if (!supabase) {
+      console.error('Impossible d\'ajouter un élément : Supabase n\'est pas configuré.');
+      return;
+    }
+
     const { data, error } = await supabase
       .from('media_lists')
       .insert({
@@ -127,13 +176,23 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   };
 
   const removeMediaItem = async (id: string) => {
+    if (!supabase) {
+      console.error('Impossible de supprimer un élément : Supabase n\'est pas configuré.');
+      return;
+    }
+
     await supabase.from('media_lists').delete().eq('id', id);
     setMediaItems(prev => prev.filter(item => item.id !== id));
   };
 
   const updateMediaItem = async (id: string, updates: Partial<MediaItem>) => {
+    if (!supabase) {
+      console.error('Impossible de mettre à jour un élément : Supabase n\'est pas configuré.');
+      return;
+    }
+
     await supabase.from('media_lists').update(updates).eq('id', id);
-    setMediaItems(prev => prev.map(item => 
+    setMediaItems(prev => prev.map(item =>
       item.id === id ? { ...item, ...updates } : item
     ));
   };
@@ -151,6 +210,18 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     initProfile();
   }, []);
+
+  if (supabaseError) {
+    return (
+      <ProfileContext.Provider value={disabledContextValue}>
+        <div className="p-6 space-y-4 text-center text-sm text-muted-foreground">
+          <p className="text-base font-semibold text-destructive">Connexion à Supabase impossible</p>
+          <p>{supabaseError}</p>
+          <p>Ajoutez ces variables dans votre fichier d'environnement puis redémarrez l'application.</p>
+        </div>
+      </ProfileContext.Provider>
+    );
+  }
 
   return (
     <ProfileContext.Provider
