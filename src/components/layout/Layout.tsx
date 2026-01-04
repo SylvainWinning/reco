@@ -19,7 +19,8 @@ export function Layout({ children }: LayoutProps) {
             <Alert variant="destructive">
               <AlertTitle>Connexion à Supabase impossible</AlertTitle>
               <AlertDescription>
-                {supabaseError} Ajoutez les variables d'environnement Supabase pour activer la synchronisation.
+                {supabaseError} Les données affichées sont en lecture seule (aucune sauvegarde),
+                ajoutez les variables d'environnement Supabase pour activer la synchronisation.
               </AlertDescription>
             </Alert>
           </div>
