@@ -69,14 +69,9 @@ VITE_SUPABASE_URL=VotreURLSupabase
 VITE_SUPABASE_PUBLISHABLE_KEY=VotreClefPublishableSupabase
 ```
 
-## How can I deploy this project?
+## Déploiement sur GitHub Pages
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+1. Poussez sur `main` : le workflow GitHub Actions **Déployer sur GitHub Pages** build automatiquement le bundle (`npm run build`, qui génère aussi `dist/404.html`) puis publie le dossier `dist/` via l'environnement Pages.
+2. Dans les paramètres du dépôt, configurez GitHub Pages sur "Deploy from GitHub Actions" pour utiliser le flux ci-dessus.
+3. Une fois le déploiement terminé, ouvrez l'URL Pages : les assets doivent être servis depuis le préfixe `/reco/` (configuré via `base` dans `vite.config.ts` et `basename` dans le router) et la SPA reste fonctionnelle grâce à la copie d'`index.html` en `404.html`.
+4. Pour un contrôle local, exécutez `npm run build` puis inspectez `dist/index.html` afin de vérifier que les chemins générés pointent bien vers `/reco/`.
