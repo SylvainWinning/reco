@@ -1,70 +1,73 @@
 -- Default preferences now include curated values
 ALTER TABLE public.profiles
   ALTER COLUMN preferences SET DEFAULT '{
-    "general": "Fan de récits immersifs avec une tension psychologique, j\u0027adore les univers de science-fiction, les thrillers élégants et les histoires qui mêlent émotion et réflexion.",
-    "directors": ["Christopher Nolan", "Denis Villeneuve", "Greta Gerwig", "Bong Joon-ho", "Hayao Miyazaki", "David Fincher", "Patty Jenkins"],
-    "actors": ["Viola Davis", "Adam Driver", "Florence Pugh", "Oscar Isaac", "Zendaya", "Cillian Murphy", "Lupita Nyong'o"],
-    "music_genres": ["Indie rock", "Synthwave", "Jazz contemporain", "Hip-hop conscient", "Classique piano", "Neo-soul"],
-    "game_preferences": "Je privilégie les jeux narratifs avec des choix impactants et des mondes ouverts riches. Les RPG et action-aventure avec un bon rythme me plaisent, tant qu'ils ne sont pas punitifs.",
-    "book_preferences": "J'aime la science-fiction humaniste, les thrillers psychologiques et les fresques historiques. Je préfère les romans bien rythmés avec des personnages travaillés."
+    "general": "Fan de jeux solo linéaires et de récits immersifs, j\u0027adore les thrillers élégants, la science-fiction sensible et les histoires qui mêlent émotion et tension psychologique.",
+    "directors": ["Denis Villeneuve", "Céline Sciamma", "Alfonso Cuarón", "Greta Gerwig", "Bong Joon-ho", "Hayao Miyazaki", "David Fincher"],
+    "actors": ["Adam Driver", "Florence Pugh", "Zendaya", "Cillian Murphy", "Lupita Nyong'o", "Adèle Exarchopoulos", "Oscar Isaac"],
+    "music_genres": ["Rap français", "Neo-soul", "Electro chill", "Jazz fusion", "Pop alternative", "Bandes originales de films"],
+    "game_preferences": "Je privilégie les expériences narratives sans grind inutile, avec une mise en scène cinématographique et des choix impactants. Les jeux d'action-aventure et les RPG très scénarisés sont mes coups de cœur.",
+    "book_preferences": "Je recherche des romans de science-fiction humaniste ou de thrillers tendus, avec un rythme maîtrisé et des personnages travaillés. Les uchronies et les fresques d'anticipation me captivent particulièrement."
   }'::jsonb;
 
 -- Seed helper to prefill lists for anonymous profiles
-CREATE OR REPLACE FUNCTION public.seed_anonymous_profile(profile_id uuid, skip_seed boolean DEFAULT false)
+CREATE OR REPLACE FUNCTION public.seed_anonymous_profile(p_profile_id uuid, skip_seed boolean DEFAULT false)
 RETURNS void AS $$
 BEGIN
   IF skip_seed THEN
     RETURN;
   END IF;
 
+  IF EXISTS (SELECT 1 FROM public.media_lists WHERE profile_id = p_profile_id LIMIT 1) THEN
+    RETURN;
+  END IF;
+
   INSERT INTO public.media_lists (profile_id, media_type, status, title, platform, notes)
   VALUES
     -- Films
-    (profile_id, 'film', 'aime', 'Inception', NULL, NULL),
-    (profile_id, 'film', 'aime', 'Arrival', NULL, NULL),
-    (profile_id, 'film', 'aime', 'Mad Max: Fury Road', NULL, NULL),
-    (profile_id, 'film', 'pas_aime', 'Suicide Squad (2016)', NULL, NULL),
-    (profile_id, 'film', 'pas_aime', 'The Room', NULL, NULL),
-    (profile_id, 'film', 'moyen', 'Batman v Superman: Dawn of Justice', NULL, NULL),
-    (profile_id, 'film', 'a_voir', 'Dune: Part Two', NULL, NULL),
-    (profile_id, 'film', 'a_voir', 'The Father', NULL, NULL),
+    (p_profile_id, 'film', 'aime', 'Interstellar', NULL, NULL),
+    (p_profile_id, 'film', 'aime', 'Dune: Part One', NULL, NULL),
+    (p_profile_id, 'film', 'aime', 'Whiplash', NULL, NULL),
+    (p_profile_id, 'film', 'aime', 'Portrait de la jeune fille en feu', NULL, NULL),
+    (p_profile_id, 'film', 'pas_aime', 'Morbius', NULL, NULL),
+    (p_profile_id, 'film', 'pas_aime', 'Cats (2019)', NULL, NULL),
+    (p_profile_id, 'film', 'a_voir', 'The Killer', NULL, NULL),
+    (p_profile_id, 'film', 'a_voir', 'Past Lives', NULL, NULL),
 
     -- Séries
-    (profile_id, 'serie', 'aime', 'Breaking Bad', NULL, NULL),
-    (profile_id, 'serie', 'aime', 'Succession', NULL, NULL),
-    (profile_id, 'serie', 'aime', 'Dark', NULL, NULL),
-    (profile_id, 'serie', 'pas_aime', 'Emily in Paris', NULL, NULL),
-    (profile_id, 'serie', 'pas_aime', 'Riverdale', NULL, NULL),
-    (profile_id, 'serie', 'moyen', 'The Witcher', NULL, NULL),
-    (profile_id, 'serie', 'a_voir', 'The Bear', NULL, NULL),
-    (profile_id, 'serie', 'a_voir', 'Fargo', NULL, NULL),
+    (p_profile_id, 'serie', 'aime', 'The Leftovers', NULL, NULL),
+    (p_profile_id, 'serie', 'aime', 'Chernobyl', NULL, NULL),
+    (p_profile_id, 'serie', 'aime', 'Arcane', NULL, NULL),
+    (p_profile_id, 'serie', 'pas_aime', 'Emily in Paris', NULL, NULL),
+    (p_profile_id, 'serie', 'pas_aime', 'The Idol', NULL, NULL),
+    (p_profile_id, 'serie', 'a_voir', 'Severance', NULL, NULL),
+    (p_profile_id, 'serie', 'a_voir', 'Shōgun', NULL, NULL),
 
     -- Jeux vidéo
-    (profile_id, 'jeu', 'aime', 'The Witcher 3: Wild Hunt', 'PC', NULL),
-    (profile_id, 'jeu', 'aime', 'God of War Ragnarök', 'PS5', NULL),
-    (profile_id, 'jeu', 'aime', 'Hades', 'Switch', NULL),
-    (profile_id, 'jeu', 'pas_aime', 'Battlefield 2042', 'PC', NULL),
-    (profile_id, 'jeu', 'moyen', 'Elden Ring', 'PS5', NULL),
-    (profile_id, 'jeu', 'a_voir', 'Baldur''s Gate 3', 'PC', NULL),
-    (profile_id, 'jeu', 'a_voir', 'Starfield', 'Xbox', NULL),
+    (p_profile_id, 'jeu', 'aime', 'The Last of Us Part I', 'PS5', NULL),
+    (p_profile_id, 'jeu', 'aime', 'Uncharted 4: A Thief''s End', 'PS5', NULL),
+    (p_profile_id, 'jeu', 'aime', 'Ori and the Will of the Wisps', 'PC', NULL),
+    (p_profile_id, 'jeu', 'pas_aime', 'Assassin''s Creed Mirage', 'PC', NULL),
+    (p_profile_id, 'jeu', 'pas_aime', 'The Elder Scrolls V: Skyrim', 'PC', NULL),
+    (p_profile_id, 'jeu', 'a_voir', 'A Plague Tale: Requiem', 'PC', NULL),
+    (p_profile_id, 'jeu', 'a_voir', 'Alan Wake 2', 'PS5', NULL),
 
     -- Livres
-    (profile_id, 'livre', 'aime', 'Dune - Frank Herbert', NULL, NULL),
-    (profile_id, 'livre', 'aime', 'La Horde du Contrevent - Alain Damasio', NULL, NULL),
-    (profile_id, 'livre', 'aime', 'Millennium : Les Hommes qui n''aimaient pas les femmes - Stieg Larsson', NULL, NULL),
-    (profile_id, 'livre', 'pas_aime', 'After - Anna Todd', NULL, NULL),
-    (profile_id, 'livre', 'pas_aime', 'Cinquante nuances de Grey - E. L. James', NULL, NULL),
-    (profile_id, 'livre', 'a_voir', 'Project Hail Mary - Andy Weir', NULL, NULL),
-    (profile_id, 'livre', 'a_voir', 'Les Misérables - Victor Hugo', NULL, NULL),
+    (p_profile_id, 'livre', 'aime', 'Hyperion - Dan Simmons', NULL, NULL),
+    (p_profile_id, 'livre', 'aime', 'Le Problème à trois corps - Liu Cixin', NULL, NULL),
+    (p_profile_id, 'livre', 'aime', 'L''Anomalie - Hervé Le Tellier', NULL, NULL),
+    (p_profile_id, 'livre', 'pas_aime', 'After - Anna Todd', NULL, NULL),
+    (p_profile_id, 'livre', 'pas_aime', 'Twilight - Stephenie Meyer', NULL, NULL),
+    (p_profile_id, 'livre', 'a_voir', 'Les Furtifs - Alain Damasio', NULL, NULL),
+    (p_profile_id, 'livre', 'a_voir', 'Le Maître du Haut Château - Philip K. Dick', NULL, NULL),
 
     -- Musiques
-    (profile_id, 'musique', 'aime', 'Random Access Memories - Daft Punk', NULL, NULL),
-    (profile_id, 'musique', 'aime', 'To Pimp a Butterfly - Kendrick Lamar', NULL, NULL),
-    (profile_id, 'musique', 'aime', 'In Rainbows - Radiohead', NULL, NULL),
-    (profile_id, 'musique', 'pas_aime', 'Baby Shark - Pinkfong', NULL, NULL),
-    (profile_id, 'musique', 'moyen', 'Stoney - Post Malone', NULL, NULL),
-    (profile_id, 'musique', 'a_voir', 'Sauvage - Zaho de Sagazan', NULL, NULL),
-    (profile_id, 'musique', 'a_voir', 'Actual Life 3 - Fred Again..', NULL, NULL);
+    (p_profile_id, 'musique', 'aime', 'Civilisation - Orelsan', NULL, NULL),
+    (p_profile_id, 'musique', 'aime', 'Feu - Nekfeu', NULL, NULL),
+    (p_profile_id, 'musique', 'aime', 'Multitude - Stromae', NULL, NULL),
+    (p_profile_id, 'musique', 'pas_aime', 'Baby Shark - Pinkfong', NULL, NULL),
+    (p_profile_id, 'musique', 'pas_aime', 'Harlem Shake - Baauer', NULL, NULL),
+    (p_profile_id, 'musique', 'a_voir', 'Mauvais Ordre - Lomepal', NULL, NULL),
+    (p_profile_id, 'musique', 'a_voir', 'Géopoétique - MC Solaar', NULL, NULL);
 END;
 $$ LANGUAGE plpgsql
 SECURITY DEFINER
