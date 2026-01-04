@@ -21,25 +21,31 @@ interface ProfileContextType {
 export const disabledContextValue: ProfileContextType = {
   profileId: null,
   preferences: defaultPreferences,
-  mediaItems: [],
+  mediaItems: seededMediaItems,
   isLoading: false,
   supabaseError: supabaseConfigError ?? 'Supabase n\'est pas configuré.',
   updatePreferences: async () => {
     console.error('Mise à jour des préférences impossible : Supabase n\'est pas configuré.');
+    return Promise.resolve();
   },
   addMediaItem: async () => {
     console.error('Ajout impossible : Supabase n\'est pas configuré.');
+    return Promise.resolve();
   },
   removeMediaItem: async () => {
     console.error('Suppression impossible : Supabase n\'est pas configuré.');
+    return Promise.resolve();
   },
   updateMediaItem: async () => {
     console.error('Mise à jour impossible : Supabase n\'est pas configuré.');
+    return Promise.resolve();
   },
-  getItemsByTypeAndStatus: () => [],
+  getItemsByTypeAndStatus: (mediaType: MediaType, status: ListStatus) =>
+    seededMediaItems.filter(item => item.media_type === mediaType && item.status === status),
   isInAnyList: () => false,
   refreshData: async () => {
     console.error('Rafraîchissement impossible : Supabase n\'est pas configuré.');
+    return Promise.resolve();
   },
 };
 
@@ -48,7 +54,9 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>(
+    supabase && !supabaseConfigError ? [] : seededMediaItems,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [supabaseError, setSupabaseError] = useState<string | null>(supabaseConfigError);
 
