@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MediaType, GamingPlatform, AnalysisResult, MEDIA_TYPE_LABELS, GAMING_PLATFORMS } from '@/lib/types';
 import { useProfile } from '@/lib/profile-context';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {

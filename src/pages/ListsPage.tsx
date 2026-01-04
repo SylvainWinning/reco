@@ -3,7 +3,7 @@ import { Layout } from '@/components/layout/Layout';
 import { useProfile } from '@/lib/profile-context';
 import { MediaType, ListStatus, MEDIA_TYPE_LABELS, MEDIA_TYPE_ICONS, LIST_STATUS_LABELS, GamingPlatform, GAMING_PLATFORMS } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StatusBadge } from '@/components/ui/media-badge';

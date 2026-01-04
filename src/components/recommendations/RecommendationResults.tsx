@@ -1,6 +1,6 @@
 import { AnalysisResult, ListStatus } from '@/lib/types';
 import { useProfile } from '@/lib/profile-context';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { MediaBadge } from '@/components/ui/media-badge';
 import { ScoreRow } from '@/components/ui/score-display';
 import { Plus, Check, ExternalLink } from 'lucide-react';
