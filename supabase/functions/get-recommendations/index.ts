@@ -13,18 +13,30 @@ if (!LOVABLE_API_KEY) {
 }
 
 // Allowed origins for CORS - restrict to known domains
-const allowedOrigins = [
+const defaultAllowedOrigins = [
   'https://lovable.dev',
   'https://www.lovable.dev',
+  'https://sylvainwinning.github.io',
+  'https://qhvzrnelhsopzeosaqlx.supabase.co',
   'http://localhost:5173',
   'http://localhost:3000',
 ];
 
+const envAllowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean) ?? [];
+
+const allowedOrigins = [...defaultAllowedOrigins, ...envAllowedOrigins];
+const normalizedAllowedOrigins = allowedOrigins.map(origin => origin.toLowerCase());
+
 function getCorsHeaders(origin: string | null): Record<string, string> {
-  const isAllowed = origin && allowedOrigins.some(allowed => 
-    origin === allowed || origin.endsWith('.lovable.dev') || origin.endsWith('.lovableproject.com')
+  const normalizedOrigin = origin?.toLowerCase() ?? null;
+  const isAllowed = normalizedOrigin && normalizedAllowedOrigins.some(allowed =>
+    normalizedOrigin === allowed ||
+    normalizedOrigin.endsWith('.lovable.dev') ||
+    normalizedOrigin.endsWith('.lovableproject.com')
   );
-  
+
   return {
     'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
