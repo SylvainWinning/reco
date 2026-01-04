@@ -65,7 +65,9 @@ export function RecommendationSearch({ onResults, isLoading, setIsLoading }: Rec
       }
 
       if (data?.error) {
-        if (data.error.includes('429') || data.error.includes('Rate limit')) {
+        if (data.code === 'missing_lovable_api_key') {
+          toast.error('Service indisponible : la configuration Lovable est manquante côté serveur. Contactez un administrateur.');
+        } else if (data.error.includes('429') || data.error.includes('Rate limit')) {
           toast.error('Limite de requêtes atteinte. Réessayez dans quelques instants.');
         } else if (data.error.includes('402')) {
           toast.error('Crédits insuffisants. Contactez l\'administrateur.');
