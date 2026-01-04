@@ -37,6 +37,13 @@ export function RecommendationSearch({ onResults, isLoading, setIsLoading }: Rec
     onResults(null);
 
     try {
+      if (!supabase) {
+        console.error('Supabase client non configuré');
+        toast.error("Supabase n'est pas configuré. Vérifiez la configuration.");
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('get-recommendations', {
         body: {
           title: title.trim(),
