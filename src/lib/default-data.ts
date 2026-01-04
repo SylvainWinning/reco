@@ -15,91 +15,90 @@ type SeedMediaItem = {
 };
 
 const rawDirectors = `
-Christopher Nolan
 Denis Villeneuve
+Céline Sciamma
+Alfonso Cuarón
 Greta Gerwig
 Bong Joon-ho
 Hayao Miyazaki
 David Fincher
-Patty Jenkins
-`; 
+`;
 
 const rawActors = `
-Viola Davis
 Adam Driver
 Florence Pugh
-Oscar Isaac
 Zendaya
 Cillian Murphy
 Lupita Nyong'o
-`; 
+Adèle Exarchopoulos
+Oscar Isaac
+`;
 
 const rawMusicGenres = `
-Indie rock
-Synthwave
-Jazz contemporain
-Hip-hop conscient
-Classique piano
+Rap français
 Neo-soul
+Electro chill
+Jazz fusion
+Pop alternative
+Bandes originales de films
 `;
 
 export const defaultPreferences: UserPreferences = {
   general:
-    "Fan de récits immersifs avec une tension psychologique, j'adore les univers de science-fiction, les thrillers élégants et les histoires qui mêlent émotion et réflexion.",
+    "Fan de jeux solo linéaires et de récits immersifs, j'adore les thrillers élégants, la science-fiction sensible et les histoires qui mêlent émotion et tension psychologique.",
   directors: normalizeList(rawDirectors),
   actors: normalizeList(rawActors),
   music_genres: normalizeList(rawMusicGenres),
   game_preferences:
-    "Je privilégie les jeux narratifs avec des choix impactants et des mondes ouverts riches. Les RPG et action-aventure avec un bon rythme me plaisent, tant qu'ils ne sont pas punitifs.",
+    "Je privilégie les expériences narratives sans grind inutile, avec une mise en scène cinématographique et des choix impactants. Les jeux d'action-aventure et les RPG très scénarisés sont mes coups de cœur.",
   book_preferences:
-    "J'aime la science-fiction humaniste, les thrillers psychologiques et les fresques historiques. Je préfère les romans bien rythmés avec des personnages travaillés.",
+    "Je recherche des romans de science-fiction humaniste ou de thrillers tendus, avec un rythme maîtrisé et des personnages travaillés. Les uchronies et les fresques d'anticipation me captivent particulièrement.",
 };
 
 export const seededMediaItems: SeedMediaItem[] = [
   // Films
-  { title: 'Inception', media_type: 'film', status: 'aime' },
-  { title: 'Arrival', media_type: 'film', status: 'aime' },
-  { title: 'Mad Max: Fury Road', media_type: 'film', status: 'aime' },
-  { title: 'Suicide Squad (2016)', media_type: 'film', status: 'pas_aime' },
-  { title: 'The Room', media_type: 'film', status: 'pas_aime' },
-  { title: 'Batman v Superman: Dawn of Justice', media_type: 'film', status: 'moyen' },
-  { title: 'Dune: Part Two', media_type: 'film', status: 'a_voir' },
-  { title: 'The Father', media_type: 'film', status: 'a_voir' },
+  { title: 'Interstellar', media_type: 'film', status: 'aime' },
+  { title: 'Dune: Part One', media_type: 'film', status: 'aime' },
+  { title: 'Whiplash', media_type: 'film', status: 'aime' },
+  { title: 'Portrait de la jeune fille en feu', media_type: 'film', status: 'aime' },
+  { title: 'Morbius', media_type: 'film', status: 'pas_aime' },
+  { title: 'Cats (2019)', media_type: 'film', status: 'pas_aime' },
+  { title: 'The Killer', media_type: 'film', status: 'a_voir' },
+  { title: 'Past Lives', media_type: 'film', status: 'a_voir' },
 
   // Séries
-  { title: 'Breaking Bad', media_type: 'serie', status: 'aime' },
-  { title: 'Succession', media_type: 'serie', status: 'aime' },
-  { title: 'Dark', media_type: 'serie', status: 'aime' },
+  { title: 'The Leftovers', media_type: 'serie', status: 'aime' },
+  { title: 'Chernobyl', media_type: 'serie', status: 'aime' },
+  { title: 'Arcane', media_type: 'serie', status: 'aime' },
   { title: 'Emily in Paris', media_type: 'serie', status: 'pas_aime' },
-  { title: 'Riverdale', media_type: 'serie', status: 'pas_aime' },
-  { title: 'The Witcher', media_type: 'serie', status: 'moyen' },
-  { title: 'The Bear', media_type: 'serie', status: 'a_voir' },
-  { title: 'Fargo', media_type: 'serie', status: 'a_voir' },
+  { title: 'The Idol', media_type: 'serie', status: 'pas_aime' },
+  { title: 'Severance', media_type: 'serie', status: 'a_voir' },
+  { title: 'Shōgun', media_type: 'serie', status: 'a_voir' },
 
   // Jeux vidéo
-  { title: 'The Witcher 3: Wild Hunt', media_type: 'jeu', status: 'aime', platform: 'PC' },
-  { title: 'God of War Ragnarök', media_type: 'jeu', status: 'aime', platform: 'PS5' },
-  { title: 'Hades', media_type: 'jeu', status: 'aime', platform: 'Switch' },
-  { title: 'Battlefield 2042', media_type: 'jeu', status: 'pas_aime', platform: 'PC' },
-  { title: 'Elden Ring', media_type: 'jeu', status: 'moyen', platform: 'PS5' },
-  { title: 'Baldur\'s Gate 3', media_type: 'jeu', status: 'a_voir', platform: 'PC' },
-  { title: 'Starfield', media_type: 'jeu', status: 'a_voir', platform: 'Xbox' },
+  { title: 'The Last of Us Part I', media_type: 'jeu', status: 'aime', platform: 'PS5' },
+  { title: "Uncharted 4: A Thief's End", media_type: 'jeu', status: 'aime', platform: 'PS5' },
+  { title: 'Ori and the Will of the Wisps', media_type: 'jeu', status: 'aime', platform: 'PC' },
+  { title: "Assassin's Creed Mirage", media_type: 'jeu', status: 'pas_aime', platform: 'PC' },
+  { title: 'The Elder Scrolls V: Skyrim', media_type: 'jeu', status: 'pas_aime', platform: 'PC' },
+  { title: 'A Plague Tale: Requiem', media_type: 'jeu', status: 'a_voir', platform: 'PC' },
+  { title: 'Alan Wake 2', media_type: 'jeu', status: 'a_voir', platform: 'PS5' },
 
   // Livres
-  { title: 'Dune - Frank Herbert', media_type: 'livre', status: 'aime' },
-  { title: 'La Horde du Contrevent - Alain Damasio', media_type: 'livre', status: 'aime' },
-  { title: "Millennium : Les Hommes qui n'aimaient pas les femmes - Stieg Larsson", media_type: 'livre', status: 'aime' },
+  { title: 'Hyperion - Dan Simmons', media_type: 'livre', status: 'aime' },
+  { title: 'Le Problème à trois corps - Liu Cixin', media_type: 'livre', status: 'aime' },
+  { title: "L'Anomalie - Hervé Le Tellier", media_type: 'livre', status: 'aime' },
   { title: 'After - Anna Todd', media_type: 'livre', status: 'pas_aime' },
-  { title: 'Cinquante nuances de Grey - E. L. James', media_type: 'livre', status: 'pas_aime' },
-  { title: 'Project Hail Mary - Andy Weir', media_type: 'livre', status: 'a_voir' },
-  { title: 'Les Misérables - Victor Hugo', media_type: 'livre', status: 'a_voir' },
+  { title: 'Twilight - Stephenie Meyer', media_type: 'livre', status: 'pas_aime' },
+  { title: 'Les Furtifs - Alain Damasio', media_type: 'livre', status: 'a_voir' },
+  { title: 'Le Maître du Haut Château - Philip K. Dick', media_type: 'livre', status: 'a_voir' },
 
   // Musiques (albums / artistes)
-  { title: 'Random Access Memories - Daft Punk', media_type: 'musique', status: 'aime' },
-  { title: 'To Pimp a Butterfly - Kendrick Lamar', media_type: 'musique', status: 'aime' },
-  { title: 'In Rainbows - Radiohead', media_type: 'musique', status: 'aime' },
+  { title: 'Civilisation - Orelsan', media_type: 'musique', status: 'aime' },
+  { title: 'Feu - Nekfeu', media_type: 'musique', status: 'aime' },
+  { title: 'Multitude - Stromae', media_type: 'musique', status: 'aime' },
   { title: 'Baby Shark - Pinkfong', media_type: 'musique', status: 'pas_aime' },
-  { title: 'Stoney - Post Malone', media_type: 'musique', status: 'moyen' },
-  { title: 'Sauvage - Zaho de Sagazan', media_type: 'musique', status: 'a_voir' },
-  { title: 'Actual Life 3 - Fred Again..', media_type: 'musique', status: 'a_voir' },
+  { title: 'Harlem Shake - Baauer', media_type: 'musique', status: 'pas_aime' },
+  { title: 'Mauvais Ordre - Lomepal', media_type: 'musique', status: 'a_voir' },
+  { title: 'Géopoétique - MC Solaar', media_type: 'musique', status: 'a_voir' },
 ];

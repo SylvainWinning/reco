@@ -69,31 +69,49 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const prefillMediaLists = useCallback(async (pid: string, hasExistingProfile: boolean) => {
-    const shouldPrefill = (import.meta.env.VITE_PREFILL_ANONYMOUS_PROFILE ?? 'true') !== 'false';
+  const prefillMediaLists = useCallback(
+    async (pid: string, hasExistingProfile: boolean) => {
+      const shouldPrefill = (import.meta.env.VITE_PREFILL_ANONYMOUS_PROFILE ?? 'true') !== 'false';
 
-    if (!supabase || !shouldPrefill || hasExistingProfile) return;
+      if (!supabase || !shouldPrefill || hasExistingProfile) return;
 
-    const { error: rpcError } = await supabase.rpc('seed_anonymous_profile', {
-      profile_id: pid,
-      skip_seed: false,
-    });
-
-    if (rpcError) {
-      console.warn('RPC seed_anonymous_profile indisponible, fallback client.', rpcError.message);
-
-      const { error: insertError } = await supabase
+      const { data: existingItems, error: existingError } = await supabase
         .from('media_lists')
-        .insert(seededMediaItems.map(item => ({ ...item, profile_id: pid })));
+        .select('id')
+        .eq('profile_id', pid)
+        .limit(1);
 
-      if (insertError) {
-        console.error('Impossible de préremplir les listes par défaut', insertError.message);
+      if (existingError) {
+        console.warn('Impossible de vérifier les listes existantes', existingError.message);
         return;
       }
-    }
 
-    await loadMediaItems(pid);
-  }, [loadMediaItems]);
+      if (existingItems && existingItems.length > 0) {
+        return;
+      }
+
+      const { error: rpcError } = await supabase.rpc('seed_anonymous_profile', {
+        p_profile_id: pid,
+        skip_seed: false,
+      });
+
+      if (rpcError) {
+        console.warn('RPC seed_anonymous_profile indisponible, fallback client.', rpcError.message);
+
+        const { error: insertError } = await supabase
+          .from('media_lists')
+          .insert(seededMediaItems.map(item => ({ ...item, profile_id: pid })));
+
+        if (insertError) {
+          console.error('Impossible de préremplir les listes par défaut', insertError.message);
+          return;
+        }
+      }
+
+      await loadMediaItems(pid);
+    },
+    [loadMediaItems],
+  );
 
   const initProfile = useCallback(async () => {
     setIsLoading(true);
@@ -106,7 +124,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
     // Check localStorage for existing profile
     const storedProfileId = localStorage.getItem('recovault_profile_id');
-    const hasExistingProfile = Boolean(storedProfileId);
+    let hasExistingProfile = false;
 
     if (storedProfileId) {
       // Verify profile exists
@@ -115,8 +133,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         .select('*')
         .eq('id', storedProfileId)
         .single();
-      
+
       if (profile) {
+        hasExistingProfile = true;
         setProfileId(profile.id);
         const prefs = profile.preferences as unknown as UserPreferences;
         setPreferences(prefs || defaultPreferences);
@@ -124,6 +143,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
         return;
       }
+
+      localStorage.removeItem('recovault_profile_id');
     }
 
     // Create new anonymous profile
